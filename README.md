@@ -29,12 +29,16 @@ On systems without KDE configuration the plugin falls back to defaults (accent `
 ## Install
 
 ```sh
-dsh plugin --profile web add link:/path/to/dsh-tinted-theme
-# or, once published:
-dsh plugin --profile web add dsh-tinted-theme
+dsh plugin --profile web add github:iwinoid/dsh-tinted-theme
 ```
 
-The package ships `cordis.patch.yml` through `dsh.bundle.patch`, so the loader mounts it with no manual patch step. Restart `dsh web` after install.
+Local development uses a link install instead:
+
+```sh
+dsh plugin --profile web add link:/path/to/dsh-tinted-theme
+```
+
+The package has no build step, so a git install needs no `allowBuilds` exception. The package ships `cordis.patch.yml` through `dsh.bundle.patch`, so the loader mounts it with no manual patch step. Restart `dsh web` after install.
 
 Check the install:
 
