@@ -1,13 +1,13 @@
 {
-  "name": "dsh-tinted-theme",
+  "name": "dsh-kde-tint",
   "version": "0.2.0",
   "description": "Tint the DSH web UI with the KDE system accent color.",
   "keywords": [
     "deepseek-harness",
     "dsh",
     "dsh-plugin",
-    "theme",
-    "kde"
+    "kde",
+    "tint"
   ],
   "type": "module",
   "main": "lib/index.js",

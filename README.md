@@ -1,4 +1,4 @@
-# dsh-tinted-theme
+# dsh-kde-tint
 [![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen?style=for-the-badge)](https://github.com/RichardLitt/standard-readme)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](https://spdx.org/licenses/MIT.html)
 [![topic: dsh-plugin](https://img.shields.io/badge/topic-dsh--plugin-4D6BFE?style=for-the-badge)](https://github.com/topics/dsh-plugin)
@@ -29,13 +29,13 @@ On systems without KDE configuration the plugin falls back to defaults (accent `
 ## Install
 
 ```sh
-dsh plugin --profile web add github:iwinoid/dsh-tinted-theme
+dsh plugin --profile web add github:iwinoid/dsh-kde-tint
 ```
 
 Local development uses a link install instead:
 
 ```sh
-dsh plugin --profile web add link:/path/to/dsh-tinted-theme
+dsh plugin --profile web add link:/path/to/dsh-kde-tint
 ```
 
 The package has no build step, so a git install needs no `allowBuilds` exception. The package ships `cordis.patch.yml` through `dsh.bundle.patch`, so the loader mounts it with no manual patch step. Restart `dsh web` after install.
@@ -43,7 +43,7 @@ The package has no build step, so a git install needs no `allowBuilds` exception
 Check the install:
 
 ```sh
-dsh --profile web --dump-config | grep -A3 tinted-theme
+dsh --profile web --dump-config | grep -A3 kde-tint
 ```
 
 Then open the DSH web UI. The background and borders carry a tint of the KDE accent color.
@@ -72,10 +72,10 @@ Text tokens stay neutral (`#1a1d22` / `#e6e8eb` primary). Only surfaces and bran
 Debug endpoint on the profile web server:
 
 ```sh
-curl http://localhost:<dsh-port>/api/tinted-theme/kde-colors
+curl http://localhost:<dsh-port>/api/kde-tint/kde-colors
 ```
 
-`GET /api/tinted-theme/kde-colors` returns `200` with JSON:
+`GET /api/kde-tint/kde-colors` returns `200` with JSON:
 
 ```json
 { "accent": "#386798", "background": "#ffffff", "scheme": "KlassyDark" }
@@ -89,7 +89,7 @@ curl http://localhost:<dsh-port>/api/tinted-theme/kde-colors
 
 ## Contributing
 
-Bug reports and questions are welcome on the [GitHub Issues](https://github.com/iwinoid/dsh-tinted-theme/issues) page. Pull requests are accepted. The client bundle is hand-written with no build step. Keep it that way.
+Bug reports and questions are welcome on the [GitHub Issues](https://github.com/iwinoid/dsh-kde-tint/issues) page. Pull requests are accepted. The client bundle is hand-written with no build step. Keep it that way.
 
 ## License
 
