@@ -5,6 +5,9 @@
 [![powered by dsh](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=for-the-badge&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)
 [![Platform: Linux](https://img.shields.io/badge/Platform-Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)](https://www.linux.org/)
 
+> [!WARNING]
+> Personal-use project. It is built and tested for my own machine and workflow only; I do not guarantee it works on other DSH versions, platforms or setups. Review the code first and use it at your own risk.
+
 Tint the DSH web UI with the KDE system accent color.
 
 ## Table of Contents
