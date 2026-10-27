@@ -13,6 +13,7 @@ Tint the DSH web UI with the KDE system accent color.
 - [Install](#install)
 - [Usage](#usage)
   - [What gets tinted](#what-gets-tinted)
+  - [What is not tinted](#what-is-not-tinted)
 - [API](#api)
 - [Maintainers](#maintainers)
 - [Contributing](#contributing)
@@ -20,11 +21,13 @@ Tint the DSH web UI with the KDE system accent color.
 
 ## Background
 
-The DSH web UI ships a neutral theme. On a KDE desktop the user already picks an accent color in System Settings. This plugin reads that color and tints the DSH interface with it. The harness then matches the desktop.
+The DSH web UI ships a neutral theme. On a KDE desktop the user already picks a color scheme. This plugin reads the **currently applied** colors and tints the DSH interface with them. The harness then matches the desktop.
 
-The plugin has two halves. The host half (`lib/index.js`) reads `~/.config/kdeglobals` and the active color-scheme file. It serves the result as JSON from the profile web server. The browser half (`lib/client.js`) fetches the JSON and applies the tint through the `theme` service. The two halves talk over plain HTTP. A static client bundle has no host bridge, so HTTP is the correct channel.
+The plugin has two halves. The host half (`lib/index.js`) reads the `Colors:*` sections that Plasma writes to `~/.config/kdeglobals`; on Material You / dynamic-color setups those sections carry the live palette, while the `.colors` file on disk can be stale. It serves the result as JSON from the profile web server. The browser half (`lib/client.js`) fetches the JSON and applies the tint through the `theme` service. The two halves talk over plain HTTP. A static client bundle has no host bridge, so HTTP is the correct channel.
 
-On systems without KDE configuration the plugin falls back to defaults (accent `#386798`, scheme `KlassyDark`). It never blocks startup because of a missing config file.
+The tint accent is `Colors:Selection.BackgroundNormal` (the applied selection color), not `General.AccentColor`, which often stays at an old manual value. `Colors:Window`, `Colors:View` and `Colors:Button` seed the surface ramp: the deepest canvas, the panel layer and the raised layer.
+
+On systems without KDE configuration the plugin falls back to the active color-scheme file, then to defaults (accent `#386798`, scheme `MaterialYouDark`). It never blocks startup because of a missing config file.
 
 ## Install
 
@@ -46,26 +49,47 @@ Check the install:
 dsh --profile web --dump-config | grep -A3 kde-tint
 ```
 
-Then open the DSH web UI. The background and borders carry a tint of the KDE accent color.
+Then open the DSH web UI. Surfaces, controls, borders and scrollbars carry the applied KDE palette.
 
 ## Usage
 
 The plugin needs no clicks. It loads with `immediately: true` and tints the UI on every page load. Uninstall (or disable) restores the stock theme. The token override is effect-scoped, so it unwinds with the plugin.
 
+Upgrading from 0.2.x changes the host half as well, so restart `dsh web` once; after that a page refresh is enough.
+
 ### What gets tinted
 
-The client mixes the KDE accent into the base surfaces. Light mode keeps a white base with 6–16% accent. Dark mode keeps a dark base with 6–8% accent. Brand primary uses the raw accent in both modes.
+The client builds a light and a dark palette from the applied scheme and overrides 57 DSH tokens. Surfaces mix 10–24% of the accent into the scheme's own base colors, so the UI keeps the desktop's depth instead of washing out. When the scheme is dark, `Colors:View` becomes the canvas, `Colors:Window` the sidebar, and `Colors:Button` the raised layers; a light scheme seeds the light palette the same way, and the other mode falls back to a neutral base plus accent.
 
-| Token | Light | Dark |
-| --- | --- | --- |
-| `--dsw-alias-bg-base` | white ＋ 6% accent | `#0a0f14` ＋ 8% accent |
-| `--dsw-alias-bg-layer-1` / sidebar fill | white ＋ 8% accent | `#11161c` ＋ 7% accent |
-| `--dsw-alias-bg-layer-2` | white ＋ 11% accent | `#1a2028` ＋ 6% accent |
-| `--dsw-alias-bg-layer-3` | white ＋ 14% accent | `#232d37` |
-| `--dsw-alias-border-l1` / `-l2` | white ＋ 12% / 16% accent | `#2a323d` / `#303a47` |
-| `--dsw-alias-brand-primary` | raw accent | raw accent |
+| Group | Tokens |
+| --- | --- |
+| Surfaces | `bg-base`, `bg-layer-1/2/3`, `sidebar-fill`, `bg-overlay`, `bg-document-preview`, `bg-skeleton` |
+| Message bubbles | `specific-bubble`, `specific-bubble-highlight` |
+| Raised panels | `bg-module-platform`, `specific-input-major`, menu surfaces, `markdown-code-block` (+ banner, inline code, tag) |
+| State fills | `interactive-bg-hover` / `-active` / `-hover-solid` |
+| Neutral controls | `button-elevated-fill`, `button-floating-fill` / `-hover`, `button-ghost-active-fill` / `-border`, `button-contrast-fill`, `button-tool-bar-fill` / `-hover`, `specific-selector`, `switch-thumb` |
+| Navigation | `specific-sidebar-nav-item-hover` / `-active` |
+| Borders | `border-l1` … `border-l4`, `border-l2-darkmode-thin` |
+| Scrollbars | `scrollbar-bg-l1` / `-l2`, `scrollbar-hover-l1` / `-l2` |
+| Brand | `brand-primary` (raw selection accent), `button-primary-hover`, `button-primary-dimmed` |
+| Toast / tooltip | `tooltip-bg`, `toast-bg` |
+| Onboarding | `onboarding-card-fill`, `onboarding-secondary-fill`, `onboarding-checkbox-border` |
 
-Text tokens stay neutral (`#1a1d22` / `#e6e8eb` primary). Only surfaces and brand follow the accent.
+`--dsw-alias-label-primary-foreground` (the label on primary buttons) is picked from black or white by the accent's contrast, so it stays above 4.5:1 for any accent. Text tokens stay neutral (`#1a1d22` / `#e6e8eb` primary).
+
+The plugin also defines three tokens that the installed DSH 0.2.1-rc.3 still references but never declares (`--dsw-alias-bg-layer-4`, `--dsw-alias-bg-l1`, `--dsw-alias-bg-l2`), because the missing variables otherwise leave some backgrounds unresolved.
+
+A few DSH components hardcode their background in a component-local CSS variable, so token overrides cannot reach them. The client injects one small stylesheet that overrides these variables from the same palette (light and dark values follow `body[data-ds-dark-theme]`):
+
+| Local variable | Component |
+| --- | --- |
+| `--dsw-hovercard-bg` | hover preview bubble (hardcoded `#2C2C2E`) |
+| `--deliverable-fill` / `--deliverable-hover` | delivered-file cards in the transcript (hardcoded neutral 50/850) |
+| `--changes-fill` / `--changes-hover` | changed-file card header (hardcoded neutral 50/850) |
+
+### What is not tinted
+
+Controls that already carry the DSH emphasis color keep it: `state-business-*` (focus borders, active underlines, references), `button-info-*` (the send button), links, the dock drop indicator, and semantic success/warning/error and diff colors. Shiki syntax colors and the terminal ANSI palette also stay as shipped.
 
 ## API
 
@@ -78,10 +102,21 @@ curl http://localhost:<dsh-port>/api/kde-tint/kde-colors
 `GET /api/kde-tint/kde-colors` returns `200` with JSON:
 
 ```json
-{ "accent": "#386798", "background": "#ffffff", "scheme": "KlassyDark" }
+{
+  "accent": "#7c8fa3",
+  "background": "#122236",
+  "view": "#081421",
+  "button": "#182b41",
+  "tooltip": "#122236",
+  "header": "#122236",
+  "scheme": "MaterialYouDark",
+  "source": "kdeglobals"
+}
 ```
 
-`accent` comes from `General.AccentColor` in `kdeglobals` (RGB triple or `#hex`). `scheme` comes from `General.ColorScheme`. `background` comes from `Colors:Window.BackgroundNormal` (or `Colors:View`) in the scheme file. When the read fails, the response still returns `200` with the default values plus an `error` string. Unknown routes return `404`.
+`accent` is `Colors:Selection.BackgroundNormal` from the applied `kdeglobals` (the live scheme Material You writes), not `General.AccentColor`, which often stays at an old manual value. `background`, `view`, `button` and `tooltip` come from the matching `Colors:*` background entries and seed the surface ramp; they are `null` when the scheme does not define them. Values are normalized to `#rrggbb` (the sources may use `#hex` or `r,g,b`).
+
+`source` is `kdeglobals`, `scheme-file` (fallback to `~/.local/share/color-schemes` or `/usr/share/color-schemes`) or `defaults`. `scheme` is `General.ColorScheme`. When the read fails, the response still returns `200` with the default values plus an `error` string. Unknown routes return `404`.
 
 ## Maintainers
 

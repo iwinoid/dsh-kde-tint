@@ -1,6 +1,6 @@
 {
   "name": "dsh-kde-tint",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Tint the DSH web UI with the KDE system accent color.",
   "keywords": [
     "deepseek-harness",
@@ -10,6 +10,7 @@
     "tint"
   ],
   "type": "module",
+  "license": "MIT",
   "main": "lib/index.js",
   "exports": {
     ".": "./lib/index.js",
@@ -22,10 +23,20 @@
     },
     "client": {
       "inject": [
-        "theme"
+        "@deepseek-ai/dsh-client-ui-theme"
       ],
       "platform": "web",
       "immediately": true
     }
+  },
+  "files": [
+    "lib/index.js",
+    "lib/client.js",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "check": "node --check lib/index.js && node --check lib/client.js"
   }
 }
